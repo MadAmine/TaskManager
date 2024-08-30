@@ -15,8 +15,7 @@ const userSchema = new mongoose.Schema({
         required:[true,'password is required']
     },
     salary : {
-        type:Number,
-        required:true
+        type:Number
     },
     dateOfIntegration : {
         type:Date,

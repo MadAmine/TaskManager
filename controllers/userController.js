@@ -8,18 +8,17 @@ export const getUser= async (req,res)=>{
 }
 
 export const getAllUsers = async (req,res)=>{
-
-
+try{
     let myQuery = {...req.query}
     const arr = ["page","limit","fields","sort"]
     arr.forEach(element => {
     delete myQuery[element]
 })
+    
     let queryStr = JSON.stringify(myQuery)
     queryStr = queryStr.replace(/\bgte|lte|gt|lt\b/g, (ele) => `$${ele}`)
     
     const queryObj = JSON.parse(queryStr)
-
 
 
     let query = User.find(queryObj)
@@ -36,14 +35,34 @@ export const getAllUsers = async (req,res)=>{
     else{
         query = query.select('-password')
     }
+    const page = +req.query.page || 1
+    const limit = +req.query.limit || 5
+    const skip = (page-1) * limit
+    
+    
+    if(req.query.page){
+        const userCount = await User.countDocuments()
+        if(skip>=userCount){
+            throw new Error("page does not exist")
+        }
+    }
+
+    query = query.skip(skip).limit(limit)
     
     const users = await query
+
 
     res.status(200).json({
         data:users,
         "user count" : query.length
     })
+}catch(error){
+    res.status(400).json({
+        error:error.message
+    })
 }
+}
+
 
 export const createUser = async (req,res) =>{
     
